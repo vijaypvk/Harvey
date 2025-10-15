@@ -4,7 +4,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useState } from "react";
 import { ScrollArea } from "../components/ui/scroll-area";
-
+import ReactMarkdown from "react-markdown";
 export default function Chatbot() {
   const [messages, setMessages] = useState([
     {
@@ -15,6 +15,7 @@ export default function Chatbot() {
     },
   ]);
   const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSend = () => {
     if (!input.trim()) return;
@@ -29,16 +30,60 @@ export default function Chatbot() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
 
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantMessage = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "Thank you for your question. This is a demo response. In the full version, I would analyze your query and provide detailed legal guidance, including relevant sections of law and where to approach for your specific legal concern.",
-        timestamp: new Date(),
-      };
-      setMessages((prev) => [...prev, assistantMessage]);
-    }, 1000);
+    // Send to webhook
+    // Send to local proxy which forwards to n8n
+    const webhookUrl = "/api/chat";
+    setLoading(true);
+    // Add a temporary assistant "thinking" message
+    const thinkingId = `thinking-${Date.now()}`;
+    const thinkingMessage = {
+      id: thinkingId,
+      role: "assistant",
+      content: "Thinking...",
+      timestamp: new Date(),
+    };
+    setMessages((prev) => [...prev, thinkingMessage]);
+
+    fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+      },
+      // send multiple aliases to increase compatibility with n8n chatTrigger
+      body: JSON.stringify({ message: input, query: input, input: input, text: input }),
+    })
+      .then(async (res) => {
+        let text;
+        const contentType = res.headers.get("content-type") || "";
+        if (contentType.includes("application/json")) {
+          const data = await res.json();
+          // Accept either { answer } or { reply } or raw text in data
+          text = data.answer ?? data.reply ?? JSON.stringify(data);
+        } else {
+          text = await res.text();
+        }
+
+        const assistantMessage = {
+          id: (Date.now() + 1).toString(),
+          role: "assistant",
+          content: text || "(no response)",
+          timestamp: new Date(),
+        };
+
+        // Replace thinking message with real assistant response
+        setMessages((prev) => prev.map((m) => (m.id === thinkingId ? assistantMessage : m)));
+      })
+      .catch((err) => {
+        const errorMessage = {
+          id: (Date.now() + 2).toString(),
+          role: "assistant",
+          content: "Error: Could not reach the AI webhook. " + (err.message || ""),
+          timestamp: new Date(),
+        };
+        setMessages((prev) => prev.map((m) => (m.id === thinkingId ? errorMessage : m)));
+      })
+      .finally(() => setLoading(false));
   };
 
   return (
@@ -69,16 +114,13 @@ export default function Chatbot() {
               {messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`flex gap-3 ${
-                    message.role === "user" ? "flex-row-reverse" : "flex-row"
-                  }`}
+                  className={`flex gap-3 ${message.role === "user" ? "flex-row-reverse text-right" : "flex-row"}`}
                 >
                   <div
-                    className={`p-2 rounded-lg ${
-                      message.role === "user"
+                    className={`p-2 rounded-lg ${message.role === "user"
                         ? "bg-primary/10"
                         : "bg-accent/10"
-                    }`}
+                      }`}
                   >
                     {message.role === "user" ? (
                       <User className="h-5 w-5 text-primary" />
@@ -87,13 +129,16 @@ export default function Chatbot() {
                     )}
                   </div>
                   <div
-                    className={`flex-1 rounded-lg p-4 ${
-                      message.role === "user"
+                    className={`flex-1 rounded-lg p-4 ${message.role === "user"
                         ? "bg-primary/10 border border-primary/20"
                         : "bg-accent/10 border border-accent/20"
-                    }`}
+                      }`}
                   >
-                    <p className="text-sm">{message.content}</p>
+                    {message.role === "assistant" ? (
+                      <ReactMarkdown>{message.content}</ReactMarkdown>
+                    ) : (
+                      <p className="text-sm">{message.content}</p>
+                    )}
                     <p className="text-xs text-muted-foreground mt-2">
                       {message.timestamp.toLocaleTimeString()}
                     </p>

@@ -4,55 +4,55 @@
 @tailwind components;
 @tailwind utilities;
 
-/* LawAssist Portal Design System - Dark Theme */
+/* LawAssist Portal Design System - Light Theme */
 
 @layer base {
   :root {
     /* Primary Backgrounds */
-    --background: 0 0% 9.4%;          /* #181818 */
-    --foreground: 0 0% 100%;           /* white */
-    
+    --background: 0 0% 100%;          /* white */
+    --foreground: 222 10% 12%;        /* dark slate for text */
+
     /* Card & Secondary */
-    --card: 0 0% 14.1%;                /* #242424 */
-    --card-foreground: 0 0% 100%;
-    
-    --secondary-bg: 0 0% 11.8%;        /* #1E1E1E */
-    
+    --card: 210 16% 98%;              /* very light gray */
+    --card-foreground: 222 10% 12%;
+
+    --secondary-bg: 210 16% 98%;      /* same as card */
+
     /* Accent Colors - Purple/Blue for Legal Trust */
-    --primary: 250 70% 60%;            /* Purple accent */
+    --primary: 250 70% 50%;           /* Purple accent (slightly darker for contrast) */
     --primary-foreground: 0 0% 100%;
-    --primary-glow: 250 70% 70%;       /* Lighter purple for glows */
-    
-    --accent: 220 80% 55%;             /* Blue accent */
+    --primary-glow: 250 70% 85%;      /* lighter glow on light bg */
+
+    --accent: 220 80% 45%;            /* Blue accent */
     --accent-foreground: 0 0% 100%;
-    
+
     /* Muted & Borders */
-    --muted: 0 0% 20%;
-    --muted-foreground: 0 0% 65%;
-    
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
+    --muted: 210 20% 96%;
+    --muted-foreground: 222 12% 45%;
+
+    --border: 210 16% 88%;
+    --input: 210 16% 96%;
     --ring: 250 70% 60%;
-    
+
     /* Destructive */
-    --destructive: 0 70% 55%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
-    
+
     /* Sidebar */
-    --sidebar-background: 0 0% 9.4%;
-    --sidebar-foreground: 0 0% 100%;
-    --sidebar-border: 0 0% 15%;
-    
+    --sidebar-background: 210 16% 100%;
+    --sidebar-foreground: 222 10% 12%;
+    --sidebar-border: 210 16% 92%;
+
     --radius: 0.75rem;
-    
+
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(250 70% 60%), hsl(220 80% 55%));
-    --gradient-glow: linear-gradient(135deg, hsl(250 70% 60% / 0.2), hsl(220 80% 55% / 0.2));
-    
+    --gradient-primary: linear-gradient(135deg, hsl(250 70% 50%), hsl(220 80% 45%));
+    --gradient-glow: linear-gradient(135deg, hsl(250 70% 50% / 0.08), hsl(220 80% 45% / 0.08));
+
     /* Shadows */
-    --shadow-card: 0 4px 24px hsl(0 0% 0% / 0.3);
-    --shadow-glow: 0 0 30px hsl(250 70% 60% / 0.3);
-    
+    --shadow-card: 0 6px 18px hsl(210 16% 12% / 0.06);
+    --shadow-glow: 0 8px 30px hsl(250 70% 50% / 0.12);
+
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
@@ -68,21 +68,22 @@
     font-family: 'Inter', sans-serif;
   }
   
-  /* Custom scrollbar for dark theme */
+  /* Custom scrollbar for light theme */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
-  
+
   ::-webkit-scrollbar-track {
     background: hsl(var(--background));
   }
-  
+
   ::-webkit-scrollbar-thumb {
     background: hsl(var(--muted));
-    border-radius: 5px;
+    border-radius: 6px;
+    border: 2px solid hsl(var(--background));
   }
-  
+
   ::-webkit-scrollbar-thumb:hover {
     background: hsl(var(--muted-foreground));
   }
