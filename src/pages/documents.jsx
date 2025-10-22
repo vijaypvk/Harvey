@@ -252,6 +252,222 @@
 //     </div>
 //   );
 // }
+// import { Upload, FileText, Trash2, Download, Search } from "lucide-react";
+// import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
+// import { Button } from "../components/ui/button";
+// import { Badge } from "../components/ui/badge";
+// import { useState } from "react";
+// import { useToast } from "../hooks/use-toast";
+
+// export default function Documents() {
+//   const [documents, setDocuments] = useState([]);
+//   const [analyzing, setAnalyzing] = useState(null);
+//   const { toast } = useToast();
+
+//   const handleFileUpload = (event) => {
+//     const files = event.target.files;
+//     if (files) {
+//       Array.from(files).forEach((file) => {
+//         const newDoc = {
+//           id: Date.now().toString() + Math.random(),
+//           name: file.name,
+//           file: file,
+//           type: file.type.includes("pdf") ? "PDF" : "DOCX",
+//           size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
+//           uploadDate: new Date().toISOString().split("T")[0],
+//           analyzed: false,
+//         };
+//         setDocuments((prev) => [...prev, newDoc]);
+
+//         toast({
+//           title: "✅ Document added",
+//           description: `${file.name} ready to analyze.`,
+//         });
+//       });
+//     }
+//   };
+
+//   // const handleAnalyze = async (docId) => {
+//   //   const doc = documents.find((d) => d.id === docId);
+//   //   if (!doc) return;
+
+//   //   setAnalyzing(docId);
+
+//   //   const formData = new FormData();
+//   //   formData.append("name", "Vijay");
+//   //   formData.append("email", "vijaypvk001@gmail.com");
+//   //   formData.append("data", doc.file);
+    
+
+//   //   try {
+//   //     await fetch("/api/upload", {
+//   //       method: "POST",
+//   //       body: formData,
+//   //     });
+
+//   //     setDocuments((prev) =>
+//   //       prev.map((d) =>
+//   //         d.id === docId ? { ...d, analyzed: true } : d
+//   //       )
+//   //     );
+
+//   //     toast({
+//   //       title: "📧 Document sent",
+//   //       description: "Summary will be sent to vijaypvk001@gmail.com",
+//   //     });
+//   //   } catch (err) {
+//   //     console.error(err);
+//   //     toast({
+//   //       title: "❌ Error",
+//   //       description: "Failed to send document for analysis.",
+//   //       variant: "destructive",
+//   //     });
+//   //   }
+
+//   //   setAnalyzing(null);
+//   // };
+// const handleAnalyze = async (docId) => {
+//   const doc = documents.find((d) => d.id === docId);
+//   if (!doc || !(doc.file instanceof Blob)) return;
+
+//   setAnalyzing(docId);
+
+//   const formData = new FormData();
+//   // backend expects the file field to be named 'file' (matches server/proxy.js)
+//   formData.append("file", doc.file, doc.name);
+//   // optionally send metadata
+//   formData.append("name", "Vijay");
+//   formData.append("email", "vijaypvk001@gmail.com");
+
+//   try {
+//     const res = await fetch("/api/analyze", {
+//       method: "POST",
+//       body: formData,
+//     });
+
+//     if (!res.ok) {
+//       const errText = await res.text().catch(() => null);
+//       throw new Error(errText || `Server returned ${res.status}`);
+//     }
+
+//     const data = await res.json().catch(() => null);
+
+//     setDocuments((prev) =>
+//       prev.map((d) =>
+//         d.id === docId ? { ...d, analyzed: true, analysis: data?.summary || data } : d
+//       )
+//     );
+
+//     toast({
+//       title: "📧 Document analyzed",
+//       description: data?.summary ? "Analysis received and saved." : "File uploaded; no analysis returned.",
+//     });
+//   } catch (err) {
+//     console.error(err);
+//     toast({
+//       title: "❌ Error",
+//       description: "Failed to send document for analysis.",
+//       variant: "destructive",
+//     });
+//   }
+
+//   setAnalyzing(null);
+// };
+
+
+//   const handleDelete = (docId) => {
+//     setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
+//     toast({
+//       title: "🗑️ Deleted",
+//       description: "Document removed from list.",
+//     });
+//   };
+
+//   return (
+//     <div className="space-y-6">
+//       <div>
+//         <h1 className="text-3xl font-bold mb-2">Documents</h1>
+//         <p className="text-muted-foreground">Upload and analyze your legal documents</p>
+//       </div>
+
+//       {/* Upload Card */}
+//       <Card className="bg-gradient-to-r from-purple-600 to-blue-500 text-white shadow-lg border-none">
+//         <CardHeader>
+//           <CardTitle>Upload Document</CardTitle>
+//           <CardDescription>PDF or DOCX (max 10MB)</CardDescription>
+//         </CardHeader>
+//         <CardContent>
+//           <label htmlFor="file-upload" className="block cursor-pointer">
+//             <div className="border-2 border-dashed border-white rounded-lg p-8 text-center hover:bg-white/10 transition">
+//               <Upload className="mx-auto h-12 w-12 mb-2" />
+//               <p>Click to upload or drag and drop</p>
+//             </div>
+//             <input
+//               id="file-upload"
+//               type="file"
+//               className="hidden"
+//               accept=".pdf,.docx"
+//               onChange={handleFileUpload}
+//             />
+//           </label>
+//         </CardContent>
+//       </Card>
+
+//       {/* Documents List */}
+//       <div>
+//         <h2 className="text-xl font-semibold mb-4">Your Documents</h2>
+//         <div className="space-y-4">
+//           {documents.map((doc) => (
+//             <Card key={doc.id} className="shadow-lg border-none bg-white/5 backdrop-blur-md">
+//               <CardContent className="p-6">
+//                 <div className="flex justify-between items-center mb-3">
+//                   <div className="flex gap-3">
+//                     <FileText className="text-purple-400 h-8 w-8" />
+//                     <div>
+//                       <p className="font-medium">{doc.name}</p>
+//                       <p className="text-sm text-white/70">
+//                         {doc.type} • {doc.size} • {doc.uploadDate}
+//                       </p>
+//                     </div>
+//                   </div>
+
+//                   <div className="flex gap-2">
+//                     {!doc.analyzed && (
+//                       <Button
+//                         onClick={() => handleAnalyze(doc.id)}
+//                         disabled={analyzing === doc.id}
+//                         className="bg-purple-600 hover:bg-purple-700 flex items-center gap-2"
+//                       >
+//                         {analyzing === doc.id ? (
+//                           <span className="animate-spin">⏳</span>
+//                         ) : (
+//                           <Search className="h-4 w-4" />
+//                         )}
+//                         {analyzing === doc.id ? "Sending..." : "Analyze"}
+//                       </Button>
+//                     )}
+
+//                     <Button variant="outline" size="icon">
+//                       <Download className="h-4 w-4" />
+//                     </Button>
+
+//                     <Button variant="destructive" size="icon" onClick={() => handleDelete(doc.id)}>
+//                       <Trash2 className="h-4 w-4" />
+//                     </Button>
+//                   </div>
+//                 </div>
+
+//                 {doc.analyzed && (
+//                   <Badge className="bg-green-600 text-white">✅ Sent to email: vijaypvk001@gmail.com</Badge>
+//                 )}
+//               </CardContent>
+//             </Card>
+//           ))}
+//         </div>
+//       </div>
+//     </div>
+//   );
+// }
 import { Upload, FileText, Trash2, Download, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../components/ui/card";
 import { Button } from "../components/ui/button";
@@ -276,6 +492,7 @@ export default function Documents() {
           size: `${(file.size / 1024 / 1024).toFixed(2)} MB`,
           uploadDate: new Date().toISOString().split("T")[0],
           analyzed: false,
+          analysis: null,
         };
         setDocuments((prev) => [...prev, newDoc]);
 
@@ -287,84 +504,51 @@ export default function Documents() {
     }
   };
 
-  // const handleAnalyze = async (docId) => {
-  //   const doc = documents.find((d) => d.id === docId);
-  //   if (!doc) return;
+  const handleAnalyze = async (docId) => {
+    const doc = documents.find((d) => d.id === docId);
+    if (!doc || !(doc.file instanceof Blob)) return;
 
-  //   setAnalyzing(docId);
+    setAnalyzing(docId);
 
-  //   const formData = new FormData();
-  //   formData.append("name", "Vijay");
-  //   formData.append("email", "vijaypvk001@gmail.com");
-  //   formData.append("data", doc.file);
-    
+    const formData = new FormData();
+    formData.append("file", doc.file, doc.name);
+    formData.append("name", "Vijay");
+    formData.append("email", "vijaypvk001@gmail.com");
 
-  //   try {
-  //     await fetch("/api/upload", {
-  //       method: "POST",
-  //       body: formData,
-  //     });
+    try {
+      const res = await fetch("http://127.0.0.1:5000/api/analyze", {
+        method: "POST",
+        body: formData,
+      });
 
-  //     setDocuments((prev) =>
-  //       prev.map((d) =>
-  //         d.id === docId ? { ...d, analyzed: true } : d
-  //       )
-  //     );
+      if (!res.ok) {
+        const errText = await res.text().catch(() => null);
+        throw new Error(errText || `Server returned ${res.status}`);
+      }
 
-  //     toast({
-  //       title: "📧 Document sent",
-  //       description: "Summary will be sent to vijaypvk001@gmail.com",
-  //     });
-  //   } catch (err) {
-  //     console.error(err);
-  //     toast({
-  //       title: "❌ Error",
-  //       description: "Failed to send document for analysis.",
-  //       variant: "destructive",
-  //     });
-  //   }
+      const data = await res.json().catch(() => null);
 
-  //   setAnalyzing(null);
-  // };
-const handleAnalyze = async (docId) => {
-  const doc = documents.find((d) => d.id === docId);
-  if (!doc || !(doc.file instanceof Blob)) return;
+      setDocuments((prev) =>
+        prev.map((d) =>
+          d.id === docId ? { ...d, analyzed: true, analysis: data } : d
+        )
+      );
 
-  setAnalyzing(docId);
+      toast({
+        title: "📧 Document analyzed",
+        description: "Analysis received and saved.",
+      });
+    } catch (err) {
+      console.error(err);
+      toast({
+        title: "❌ Error",
+        description: "Failed to send document for analysis.",
+        variant: "destructive",
+      });
+    }
 
-  const formData = new FormData();
-  formData.append("name", "Vijay");
-  formData.append("email", "vijaypvk001@gmail.com");
-  formData.append("data", doc.file, doc.name);
-
-  try {
-    await fetch("/api/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    setDocuments((prev) =>
-      prev.map((d) =>
-        d.id === docId ? { ...d, analyzed: true } : d
-      )
-    );
-
-    toast({
-      title: "📧 Document sent",
-      description: "Summary will be sent to vijaypvk001@gmail.com",
-    });
-  } catch (err) {
-    console.error(err);
-    toast({
-      title: "❌ Error",
-      description: "Failed to send document for analysis.",
-      variant: "destructive",
-    });
-  }
-
-  setAnalyzing(null);
-};
-
+    setAnalyzing(null);
+  };
 
   const handleDelete = (docId) => {
     setDocuments((prev) => prev.filter((doc) => doc.id !== docId));
@@ -448,8 +632,36 @@ const handleAnalyze = async (docId) => {
                   </div>
                 </div>
 
-                {doc.analyzed && (
-                  <Badge className="bg-green-600 text-white">✅ Sent to email: vijaypvk001@gmail.com</Badge>
+                {/* Show Analysis */}
+                {doc.analyzed && doc.analysis && (
+                  <div className="mt-4 space-y-2 bg-gray-900 p-4 rounded-md">
+                    <h4 className="font-semibold text-white">Document Overview:</h4>
+                    <p className="text-white/80">{doc.analysis["Document Overview"]}</p>
+
+                    <h4 className="font-semibold text-white mt-2">Key Parties & Roles:</h4>
+                    {doc.analysis["Key Parties & Roles"]?.map((p, idx) => (
+                      p.party && (
+                        <p key={idx} className="text-white/80">
+                          {p.role}: {p.party}
+                        </p>
+                      )
+                    ))}
+
+                    <h4 className="font-semibold text-white mt-2">Primary Clauses:</h4>
+                    <ul className="list-disc ml-5 text-white/80">
+                      {doc.analysis["Primary Clauses"]?.map((clause, idx) => (
+                        <li key={idx}>{clause}</li>
+                      ))}
+                    </ul>
+
+                    <h4 className="font-semibold text-white mt-2">Risks / Obligations:</h4>
+                    <p className="text-white/80">{doc.analysis["Risks / Obligations"]}</p>
+
+                    <h4 className="font-semibold text-white mt-2">Summary Verdict:</h4>
+                    <p className="text-white/80">{doc.analysis["Summary Verdict"]}</p>
+
+                    <Badge className="bg-green-600 text-white mt-2 inline-block">✅ Analysis complete</Badge>
+                  </div>
                 )}
               </CardContent>
             </Card>

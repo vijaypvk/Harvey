@@ -18,73 +18,82 @@ export default function Chatbot() {
   const [loading, setLoading] = useState(false);
 
   const handleSend = () => {
-    if (!input.trim()) return;
+  if (!input.trim()) return;
 
-    const userMessage = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input,
-      timestamp: new Date(),
-    };
-
-    setMessages((prev) => [...prev, userMessage]);
-    setInput("");
-
-    // Send to webhook
-    // Send to local proxy which forwards to n8n
-    const webhookUrl = "/api/chat";
-    setLoading(true);
-    // Add a temporary assistant "thinking" message
-    const thinkingId = `thinking-${Date.now()}`;
-    const thinkingMessage = {
-      id: thinkingId,
-      role: "assistant",
-      content: "Thinking...",
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, thinkingMessage]);
-
-    fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-      },
-      // send multiple aliases to increase compatibility with n8n chatTrigger
-      body: JSON.stringify({ message: input, query: input, input: input, text: input }),
-    })
-      .then(async (res) => {
-        let text;
-        const contentType = res.headers.get("content-type") || "";
-        if (contentType.includes("application/json")) {
-          const data = await res.json();
-          // Accept either { answer } or { reply } or raw text in data
-          text = data.answer ?? data.reply ?? JSON.stringify(data);
-        } else {
-          text = await res.text();
-        }
-
-        const assistantMessage = {
-          id: (Date.now() + 1).toString(),
-          role: "assistant",
-          content: text || "(no response)",
-          timestamp: new Date(),
-        };
-
-        // Replace thinking message with real assistant response
-        setMessages((prev) => prev.map((m) => (m.id === thinkingId ? assistantMessage : m)));
-      })
-      .catch((err) => {
-        const errorMessage = {
-          id: (Date.now() + 2).toString(),
-          role: "assistant",
-          content: "Error: Could not reach the AI webhook. " + (err.message || ""),
-          timestamp: new Date(),
-        };
-        setMessages((prev) => prev.map((m) => (m.id === thinkingId ? errorMessage : m)));
-      })
-      .finally(() => setLoading(false));
+  const userMessage = {
+    id: Date.now().toString(),
+    role: "user",
+    content: input,
+    timestamp: new Date(),
   };
+
+  setMessages((prev) => [...prev, userMessage]);
+  setInput("");
+
+  // Add a temporary assistant "thinking" message
+  const thinkingId = `thinking-${Date.now()}`;
+  const thinkingMessage = {
+    id: thinkingId,
+    role: "assistant",
+    content: "Thinking...",
+    timestamp: new Date(),
+  };
+  setMessages((prev) => [...prev, thinkingMessage]);
+  setLoading(true);
+
+  const chatUrl = "http://127.0.0.1:5000/api/chat";
+  const payloadText = userMessage.content;
+
+  const requestOptions = {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Accept: "application/json",
+    },
+    body: JSON.stringify({
+      message: payloadText,
+      query: payloadText,
+      input: payloadText,
+      text: payloadText,
+    }),
+  };
+
+  fetch(chatUrl, requestOptions)
+    .then(async (res) => {
+      if (!res.ok) throw new Error(res.statusText || res.status);
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        return data.reply ?? data.answer ?? JSON.stringify(data);
+      } else {
+        return await res.text();
+      }
+    })
+    .then((chatText) => {
+      const assistantMessage = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: chatText || "(no chat response)",
+        timestamp: new Date(),
+      };
+      setMessages((prev) =>
+        prev.map((m) => (m.id === thinkingId ? assistantMessage : m))
+      );
+    })
+    .catch((err) => {
+      const errorMessage = {
+        id: (Date.now() + 2).toString(),
+        role: "assistant",
+        content: "Error: Unexpected failure contacting endpoint. " + (err.message || ""),
+        timestamp: new Date(),
+      };
+      setMessages((prev) =>
+        prev.map((m) => (m.id === thinkingId ? errorMessage : m))
+      );
+    })
+    .finally(() => setLoading(false));
+};
+
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">

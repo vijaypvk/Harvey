@@ -19,7 +19,7 @@ export const Sidebar = () => {
         {/* Logo */}
         <div className="flex h-16 items-center px-6 border-b border-gray-200 bg-white">
           <h1 className="text-xl font-bold bg-black text-transparent bg-clip-text">
-            Legal ai assistant
+            Legal AI assistant
           </h1>
         </div>
 
