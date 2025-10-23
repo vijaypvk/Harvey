@@ -41,7 +41,7 @@ export default function Chatbot() {
   setMessages((prev) => [...prev, thinkingMessage]);
   setLoading(true);
 
-  const chatUrl = "http://127.0.0.1:5000/api/chat";
+  const chatUrl = "http://127.0.0.1:8000/api/chat";
   const payloadText = userMessage.content;
 
   const requestOptions = {
